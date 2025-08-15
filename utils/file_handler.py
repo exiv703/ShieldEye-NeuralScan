@@ -8,21 +8,18 @@ LEGACY_FILE = 'scan_history.json'
 
 def load_scan_history():
     """Load scan history from new location, with legacy fallback and migration."""
-    # Prefer new path
     if os.path.exists(HISTORY_FILE):
         try:
             with open(HISTORY_FILE, 'r') as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             return []
-    # Fallback to legacy path and migrate
     if os.path.exists(LEGACY_FILE):
         try:
             with open(LEGACY_FILE, 'r') as f:
                 data = json.load(f)
         except (json.JSONDecodeError, IOError):
             return []
-        # Try to persist to new location for future reads
         try:
             os.makedirs(DATA_DIR, exist_ok=True)
             with open(HISTORY_FILE, 'w') as nf:
