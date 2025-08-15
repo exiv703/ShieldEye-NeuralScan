@@ -203,4 +203,4 @@ For full technical documentation, see [DOCUMENTATION.md](./DOCUMENTATION.md).
 ---
 
 ## 📜 License
-MIT License. See `LICENSE`.
+MIT License. See [License](./LICENSE)
