@@ -21,7 +21,7 @@
 
 ---
 
-## Table of Contents
+## 📚 Table of Contents
 
 - [Highlights](#highlights)
 - [Screenshots](#screenshots)
@@ -39,10 +39,10 @@
 
 ---
 
-## Highlights
+## 🔥 Highlights
 
 - 💻 Clean desktop GUI (CustomTkinter): Dashboard, Scan, Results
-- 🔎 Heuristic scanning (regex-based):
+- �� Heuristic scanning (regex-based):
   - Command exec: `subprocess(..., shell=True)`, `os.system(...)`
   - Dynamic code: `eval(...)`, `exec(...)`
   - Unsafe deserialization: `pickle.load(...)`, `yaml.load(...)` (bez SafeLoader)
@@ -59,7 +59,7 @@
 
 ---
 
-## Screenshots
+## 🖼️ Screenshots
 
 <p align="center">
   <img src="assets/screenshots/dashboard.png" width="90%" alt="Dashboard"/> 
@@ -69,7 +69,7 @@
 
 ---
 
-## System Requirements
+## �� System Requirements
 
 - Python 3.9+
 - A desktop environment with Tk available
@@ -82,21 +82,30 @@ Tip:
 
 ---
 
-## Installation
+## 🧰 Installation
 
-Recommended virtual environment:
+Clone the repository:
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install --upgrade pip
+git clone https://github.com/exiv703/neuralscan.git
+cd neuralscan
 ```
 
-Install core dependencies:
+Create and activate a virtual environment:
 ```bash
+python -m venv .venv
+# Linux/macOS
+source .venv/bin/activate
+# Windows
+.venv\\Scripts\\activate
+```
+
+Upgrade pip and install dependencies:
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-AI (optional, PyTorch):
+Optional — AI (PyTorch):
 ```bash
 # Example CPU-only wheel
 pip install torch --index-url https://download.pytorch.org/whl/cpu
@@ -104,7 +113,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
 ```bash
 python run.py
@@ -115,7 +124,7 @@ python run.py
 
 ---
 
-## Usage
+## ▶️ Usage
 
 1. Open the app (`python run.py`).
 2. Go to “Scan” and select a file (.py, .js, .sh, Dockerfile).
@@ -125,7 +134,7 @@ python run.py
 
 ---
 
-## Settings
+## 🔧 Settings
 
 - AI Model: e.g., `bigcode/starcoder2-3b` (local AI explanations)
 - Use Trivy: enable Docker-based dependency scanning
@@ -135,7 +144,7 @@ python run.py
 
 ---
 
-## Privacy
+## 🔒 Privacy
 
 - Local-first: analysis runs on your machine.
 - Network is used only to fetch the AI model or Trivy image on first use.
@@ -143,7 +152,7 @@ python run.py
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 - `gui/` — CustomTkinter UI  
   - `gui/main.py` — main application (`App`), views, results rendering  
@@ -156,7 +165,7 @@ python run.py
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
 - Better accessibility (focus order, hints)
 - Theming presets (compact/comfortable)
@@ -167,7 +176,7 @@ Ideas or PRs welcome!
 
 ---
 
-## FAQ
+## ❓ FAQ
 
 - Do I need Torch?  
   Only for AI explanations. Scanner works without it (deterministic fallback).
@@ -178,7 +187,7 @@ Ideas or PRs welcome!
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repo
 2. Create a feature branch
@@ -187,7 +196,7 @@ Ideas or PRs welcome!
 
 ---
 
-## License
+## 📜 License
 
 MIT — see [LICENSE](./LICENSE).
 
