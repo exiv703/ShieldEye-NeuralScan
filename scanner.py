@@ -347,7 +347,6 @@ Critical Rules:
     def _basic_static_analysis(self, code: str) -> List[Dict[str, Any]]:
         findings: List[Dict[str, Any]] = []
         lines = code.splitlines()
-        # Per-rule severities to better reflect risk and avoid all-High findings
         rules: List[Dict[str, str]] = [
             {
                 "pattern": r'subprocess\.run\(.*shell=True.*\)',
@@ -435,7 +434,7 @@ Critical Rules:
             },
         ]
 
-        seen = set()  # (line_no, description)
+        seen = set()  
         for i, line in enumerate(lines):
             for details in rules:
                 try:
@@ -453,7 +452,6 @@ Critical Rules:
                             "source": "Heuristic Detector",
                         })
                 except re.error:
-                    # Skip invalid regex patterns gracefully
                     continue
         return findings
 
