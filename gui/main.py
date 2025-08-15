@@ -37,6 +37,10 @@ class App(ctk.CTk):
         self.geometry("1100x700")
         self.configure(fg_color=colors["bg"]) 
 
+        
+        self._closing = False
+        self._after_ids = set()
+
         self.scanner = SecurityScanner()
         try:
             self.scanner.prepare_ai_analyzer()
@@ -80,6 +84,10 @@ class App(ctk.CTk):
 
         self.after_idle(self._init_first_view)
         self.view_container.bind("<Configure>", self._on_container_configure)
+        try:
+            self.protocol("WM_DELETE_WINDOW", self._on_close)
+        except Exception:
+            pass
 
     def load_icons(self):
         self.icons = {}
@@ -139,6 +147,95 @@ class App(ctk.CTk):
         if size is not None:
             color_img = color_img.resize(size, Image.LANCZOS)
         return ctk.CTkImage(color_img, size=size)
+    
+    def after(self, delay_ms, func=None, *args):
+        try:
+            if func is None:
+                return super().after(delay_ms)
+            if getattr(self, "_closing", False):
+                return ""
+            holder = {"id": None}
+
+            def _wrapped():
+                try:
+                    if not getattr(self, "_closing", False) and self.winfo_exists():
+                        func(*args)
+                except Exception:
+                    pass
+                finally:
+                    try:
+                        if holder["id"] in self._after_ids:
+                            self._after_ids.discard(holder["id"])
+                    except Exception:
+                        pass
+
+            aid = super().after(delay_ms, _wrapped)
+            try:
+                holder["id"] = aid
+                self._after_ids.add(aid)
+            except Exception:
+                pass
+            return aid
+        except Exception:
+            return super().after(delay_ms, func, *args)
+
+    def after_cancel(self, aid):
+        try:
+            super().after_cancel(aid)
+        finally:
+            try:
+                self._after_ids.discard(aid)
+            except Exception:
+                pass
+
+    def _on_close(self):
+        """Bezpiecznie zamyka okno: zatrzymuje okresowe zadania, anuluje callbacki i niszczy aplikację."""
+        try:
+            self._closing = True
+        except Exception:
+            pass
+        try:
+            self._scan_pulse_running = False
+        except Exception:
+            pass
+        try:
+            if hasattr(self, "results_progress"):
+                self.results_progress.stop()
+        except Exception:
+            pass
+        try:
+            for aid in list(getattr(self, "_after_ids", [])):
+                try:
+                    super().after_cancel(aid)
+                except Exception:
+                    pass
+            self._after_ids.clear()
+        except Exception:
+            pass
+        try:
+            super().destroy()
+        except Exception:
+            pass
+
+    def destroy(self):
+        try:
+            self._closing = True
+        except Exception:
+            pass
+        try:
+            for aid in list(getattr(self, "_after_ids", [])):
+                try:
+                    super().after_cancel(aid)
+                except Exception:
+                    pass
+            self._after_ids.clear()
+        except Exception:
+            pass
+        try:
+            self._scan_pulse_running = False
+        except Exception:
+            pass
+        return super().destroy()
 
     def create_widgets(self):
         self.sidebar_frame = ctk.CTkFrame(self, width=200, corner_radius=0, fg_color=colors["sidebar-bg"],
@@ -1227,6 +1324,8 @@ class App(ctk.CTk):
             self.scan_queue.put({"error": str(e)})
 
     def process_queue(self):
+        if getattr(self, "_closing", False) or not self.winfo_exists():
+            return
         try:
             try:
                 prog = getattr(self.scanner, 'progress_message', '')
@@ -1821,6 +1920,7 @@ class App(ctk.CTk):
             child.destroy()
 
         history = load_scan_history()
+        # Aggregate entries by date to plot daily totals (maintains previous behavior)
         try:
             daily = {}
             for entry in history:
@@ -1881,6 +1981,7 @@ class App(ctk.CTk):
         if not cats:
             ctk.CTkLabel(self.risk_list_frame, text="No data to display.", text_color=colors["text-muted"]).pack(padx=12, pady=(4,12), anchor="w")
         else:
+            # top separator to improve clarity
             ctk.CTkFrame(self.risk_list_frame, height=1, fg_color=colors.get("border", "#2A3242")).pack(fill="x", padx=8, pady=(0, 4))
             for idx, item in enumerate(cats):
                 
