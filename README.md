@@ -5,70 +5,89 @@
   <img src="https://img.shields.io/badge/License-MIT-6f42c1" />
 </p>
 
-# <img src="assets/brand-banner.svg" alt="NeuralScan" width="100%" />
-
-# 🛡️ NeuralScan
-
-> See the threats before they see you.
-
-NeuralScan is a lightweight desktop app that scans source files and configs for security risks. It ships with a clean CustomTkinter UI (Dashboard, Scan, Results), optional AI explanations for flagged snippets, and optional Trivy integration.
-
----
-
-## ✨ Features
-
-- Modern GUI: clean CustomTkinter interface with Dashboard, Scan, Results
-- Heuristic scanning (regex-based):
-  - Command execution: `subprocess(..., shell=True)`, `os.system(...)`
-  - Dynamic code: `eval(...)`, `exec(...)`
-  - Unsafe deserialization: `pickle.load(...)`, `yaml.load(...)` (without SafeLoader)
-  - Weak crypto: `hashlib.md5`, `hashlib.sha1`, `DES`
-  - Filesystem risks: destructive ops (`os.remove`, `os.unlink`, `shutil.rmtree`), writes via `open(..., 'w'|'a')`
-  - Secrets: hardcoded `api key/secret/password/token`, AWS AKIA keys
-  - Network indicators: `requests.*(http[s]://...)`, raw `socket`
-- AI explanations (optional): per-finding explanation by a local HF model (if available)
-- Trivy integration (optional): vulnerabilities and secrets via Docker container
-- Dashboard: security score, risk categories, and recent history
-
----
-
-## 🖼️ Screenshots
-
-
 <p align="center">
-   <img src="assets/screenshots/dashboard.png" width="90%" alt="Dashboard"/> 
-   <img src="assets/screenshots/scan.png" width="90%" alt="Scan"/> 
-   <img src="assets/screenshots/results.png" width="90%" alt="Results"/> 
+  <img src="assets/brand-banner.svg" alt="NeuralScan" width="100%" />
 </p>
 
-## 📋 System Requirements
+<h1 align="center">🛡️ NeuralScan</h1>
+
+<p align="center">
+  <b>Find security pitfalls fast:</b> heuristics + local AI (StarCoder2‑3B). Optional Trivy. Local‑first, MIT.
+</p>
+
+<p align="center">
+  If you like it, please ⭐ the repo — it helps a lot!
+</p>
+
+---
+
+## Table of Contents
+
+- [Highlights](#highlights)
+- [Screenshots](#screenshots)
+- [System Requirements](#system-requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+- [Settings](#settings)
+- [Privacy](#privacy)
+- [Architecture](#architecture)
+- [Roadmap](#roadmap)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Highlights
+
+- 💻 Clean desktop GUI (CustomTkinter): Dashboard, Scan, Results
+- 🔎 Heuristic scanning (regex-based):
+  - Command exec: `subprocess(..., shell=True)`, `os.system(...)`
+  - Dynamic code: `eval(...)`, `exec(...)`
+  - Unsafe deserialization: `pickle.load(...)`, `yaml.load(...)` (bez SafeLoader)
+  - Weak crypto: `hashlib.md5`, `hashlib.sha1`, `DES`
+  - Filesystem risks: `os.remove`, `os.unlink`, `shutil.rmtree`, zapisy `open(..., w|a)`
+  - Secrets (api key/secret/password/token), AWS AKIA
+  - Network IOCs: `requests.*(http[s]://...)`, surowy `socket`
+- 🤖 Optional AI explanations (local): `bigcode/starcoder2‑3b` via HF Transformers  
+  Falls back to deterministic text if AI is unavailable.
+- 🐳 Optional Trivy (Docker) for dependency vulnerabilities & secrets
+- 📊 Dashboard: security score (severity‑weighted), top risk categories, recent history (local)
+- ✅ Cross‑platform: Linux / Windows / macOS, Python 3.9+
+- 🔓 MIT license
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/dashboard.png" width="90%" alt="Dashboard"/> 
+  <img src="assets/screenshots/scan.png" width="90%" alt="Scan"/> 
+  <img src="assets/screenshots/results.png" width="90%" alt="Results"/> 
+</p>
+
+---
+
+## System Requirements
 
 - Python 3.9+
-- Desktop environment with Tk available
+- A desktop environment with Tk available
 - Optional: Docker (for Trivy integration)
 
----
-
-## 🚀 Tech Stack
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.9%2B-6f42c1?logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/CustomTkinter-UI-6f42c1?logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/matplotlib-3.x-6f42c1?logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Pillow-10%2B-6f42c1?logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/transformers-4.x-6f42c1?logo=huggingface&logoColor=white" />
-  <img src="https://img.shields.io/badge/accelerate-0.3x-6f42c1?logo=huggingface&logoColor=white" />
-  <img src="https://img.shields.io/badge/docker-SDK-6f42c1?logo=docker&logoColor=white" />
-</p>
+Tip:
+- Ubuntu/Debian: `sudo apt-get install -y python3-tk`
+- macOS (Homebrew): `brew install tcl-tk` (uruchamiaj Pythona ze wskazaniem na ten Tk)
+- Windows: Tk zwykle wbudowany w instalator Pythona
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 Recommended virtual environment:
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install --upgrade pip
 ```
 
@@ -76,131 +95,99 @@ Install core dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-> Note on PyTorch: if you plan to use AI explanations, install `torch` per your platform. Torch wheels are platform/GPU-specific. Follow https://pytorch.org/get-started/ to pick the right wheel. Example CPU-only:
-> ```bash
-> pip install torch --index-url https://download.pytorch.org/whl/cpu
-> ```
+
+AI (optional, PyTorch):
+```bash
+# Example CPU-only wheel
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
-1. Ensure Python 3.9+ is installed.
-2. (Optional) Install Docker and start the Docker daemon (for Trivy integration).
-3. Create and activate a virtualenv.
-4. Install requirements: `pip install -r requirements.txt`.
-5. (Optional) Install `torch` for AI explanations (see note above).
-6. Run: `python run.py`.
-
----
-
-## ▶️ Usage
-
-Run the app:
 ```bash
 python run.py
 ```
 
-Workflow:
-1. Go to Scan and select a file (.py, .js, .sh, Dockerfile).
-2. Results auto-open with findings, code snippets, and explanations. Each finding shows its source: AI Analyzer | Heuristic/Fallback | Trivy.
-3. Dashboard shows score, risk categories, and recent scans.
+- Optional: start Docker daemon for Trivy integration (`docker info`)
+- First AI/Trivy use may download a model/image (one-time)
 
 ---
 
-## 🧭 Table of Contents
+## Usage
 
-- [Features](#-features)
-- [Screenshots](#️-screenshots)
-- [System Requirements](#-system-requirements)
-- [Tech Stack](#-tech-stack)
-- [Installation](#️-installation)
-- [Quick Start](#-quick-start)
-- [Usage](#️-usage)
-- [Documentation](#-documentation)
-- [Settings](#-settings)
-- [Architecture](#-architecture)
-- [Roadmap](#-roadmap)
-- [FAQ](#-faq)
-- [Contributing](#-contributing)
-- [License](#-license)
+1. Open the app (`python run.py`).
+2. Go to “Scan” and select a file (.py, .js, .sh, Dockerfile).
+3. Results open automatically: findings, code snippets, explanations.  
+   Each finding shows its source: AI Analyzer | Heuristic/Fallback | Trivy.
+4. Dashboard → security score, top risk categories, recent history.
 
 ---
 
-## 📚 Documentation
-For full technical documentation, see [DOCUMENTATION.md](./DOCUMENTATION.md).
+## Settings
+
+- AI Model: e.g., `bigcode/starcoder2-3b` (local AI explanations)
+- Use Trivy: enable Docker-based dependency scanning
+- Minimum scan time (ms): smoother UX pacing
+- AI explanation detail: short | standard | deep
+- Save scan history: keeps ~30 recent scans in `data/scan_history.json`
 
 ---
 
-## ⚙️ Settings
-- AI Model: choose the model for explanations (e.g., `bigcode/starcoder2-3b`). Falls back to deterministic text if AI is unavailable.
-- Use Trivy: enable container-based vulnerability/secret scan (requires Docker and `docker` SDK). The `aquasec/trivy:latest` image is pulled on first use.
-- Minimum scan time (ms): ensures realistic UX pacing.
-- AI explanation detail: short, standard, deep.
-- Save scan history: stores last ~30 scans in `data/scan_history.json`.
+## Privacy
+
+- Local-first: analysis runs on your machine.
+- Network is used only to fetch the AI model or Trivy image on first use.
+- Scan history is stored locally (`data/scan_history.json`) and is git‑ignored.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
-- `gui/` — CustomTkinter UI
-  - `gui/main.py` — main application (`App`), views, results rendering
+- `gui/` — CustomTkinter UI  
+  - `gui/main.py` — main application (`App`), views, results rendering  
   - `gui/theme.py` — theme and color tokens
-- `scanner.py` — scanning logic (heuristics, optional AI/Trivy). AI explains only snippets wykryte przez heurystyki; nie wykonuje domyślnie pełno-plikowej analizy.
-- `utils/file_handler.py` — scan history I/O (`data/scan_history.json`)
+- `scanner.py` — scanning logic (heuristics, optional AI/Trivy)  
+  AI explains only snippets flagged by heuristics; no full‑file LLM pass by default.
+- `utils/file_handler.py` — scan history I/O (`data/scan_history.json`, legacy migration)
 - `run.py` — entry point
-- `assets/` — icons, banner, optional screenshots
+- `assets/` — icons, banner, screenshots
 
 ---
 
-## 🧩 Project Structure
-- `run.py` – app entry point (GUI)
-- `scanner.py` – scanning logic (heuristics, optional AI/Trivy)
-- `gui/main.py` – UI (`App`), views, results rendering
-- `gui/theme.py` – visual theme
-- `utils/file_handler.py` – scan history I/O
-- `assets/` – icons and visual assets (PNG/SVG)
+## Roadmap
+
+- Better accessibility (focus order, hints)
+- Theming presets (compact/comfortable)
+- Lightweight animations for transitions
+- Pluggable rule packs per language
+
+Ideas or PRs welcome!
 
 ---
 
-## ❗ Troubleshooting
-- AI missing: app works without AI; explanations fall back to deterministic text. “AI Ready” oznacza gotowość modelu, ale źródło każdego znaleziska jest pokazane w karcie (AI/Heuristic/Trivy).
-- Torch install: for CPU-only, for example:
-  ```bash
-  pip install torch --index-url https://download.pytorch.org/whl/cpu
-  ```
-- Docker/Trivy: ensure Docker daemon is running (`docker info`). First run may pull `aquasec/trivy:latest`.
-- Icons: make sure `gui/assets/` contains required `.png` or `.svg` files.
+## FAQ
+
+- Do I need Torch?  
+  Only for AI explanations. Scanner works without it (deterministic fallback).
+- Do I need Docker?  
+  Only for Trivy integration. Without Docker, the rest of the app still works.
+- Windows/macOS support?  
+  Yes, if `tkinter` is available and deps install. On Linux ensure `python3-tk`.
 
 ---
 
-## 🗺️ Roadmap
+## Contributing
 
-- Better accessibility (keyboard focus order, aria-like hints)
-- Theming presets (compact/comfortable density)
-- Optional animations for view transitions
-- Pluggable rule packs for language-specific checks
-
----
-
-## ❓ FAQ
-
-- Q: Do I need Torch?  
-  A: Only for AI explanations. The scanner works without it.
-- Q: Do I need Docker?  
-  A: Only if you enable Trivy integration.
-- Q: Does it support Windows/macOS?  
-  A: Yes, if `tkinter` is available and dependencies install. On Linux ensure `python3-tk`.
-
----
-
-## 🤝 Contributing
-1. Fork the repository
+1. Fork the repo
 2. Create a feature branch
 3. Make changes and test
 4. Open a pull request
 
 ---
 
-## 📜 License
-MIT License. See [License](./LICENSE)
+## License
+
+MIT — see [LICENSE](./LICENSE).
+
