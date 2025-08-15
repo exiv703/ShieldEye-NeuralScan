@@ -1821,7 +1821,6 @@ class App(ctk.CTk):
             child.destroy()
 
         history = load_scan_history()
-        # Aggregate entries by date to plot daily totals (maintains previous behavior)
         try:
             daily = {}
             for entry in history:
@@ -1882,7 +1881,6 @@ class App(ctk.CTk):
         if not cats:
             ctk.CTkLabel(self.risk_list_frame, text="No data to display.", text_color=colors["text-muted"]).pack(padx=12, pady=(4,12), anchor="w")
         else:
-            # top separator to improve clarity
             ctk.CTkFrame(self.risk_list_frame, height=1, fg_color=colors.get("border", "#2A3242")).pack(fill="x", padx=8, pady=(0, 4))
             for idx, item in enumerate(cats):
                 
