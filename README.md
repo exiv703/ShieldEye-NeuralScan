@@ -34,13 +34,11 @@ NeuralScan is a lightweight desktop app that scans source files and configs for 
 
 ## 🖼️ Screenshots
 
-Add your screenshots to `assets/screenshots/` and reference them here. Example layout:
 
 <p align="center">
-  <!-- Replace these examples with your files when available -->
-  <!-- <img src="assets/screenshots/dashboard.png" width="90%" alt="Dashboard"/> -->
-  <!-- <img src="assets/screenshots/scan.png" width="90%" alt="Scan"/> -->
-  <!-- <img src="assets/screenshots/results.png" width="90%" alt="Results"/> -->
+   <img src="assets/screenshots/dashboard.png" width="90%" alt="Dashboard"/> 
+   <img src="assets/screenshots/scan.png" width="90%" alt="Scan"/> 
+   <img src="assets/screenshots/results.png" width="90%" alt="Results"/> 
 </p>
 
 ## 📋 System Requirements
