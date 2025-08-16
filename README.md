@@ -42,19 +42,19 @@
 ## 🔥 Highlights
 
 - 💻 Clean desktop GUI (CustomTkinter): Dashboard, Scan, Results
-- �� Heuristic scanning (regex-based):
+- 🧠 Heuristic scanning (regex-based):
   - Command exec: `subprocess(..., shell=True)`, `os.system(...)`
   - Dynamic code: `eval(...)`, `exec(...)`
-  - Unsafe deserialization: `pickle.load(...)`, `yaml.load(...)` (bez SafeLoader)
+  - Unsafe deserialization: `pickle.load(...)`, `yaml.load(...)` (without SafeLoader)
   - Weak crypto: `hashlib.md5`, `hashlib.sha1`, `DES`
-  - Filesystem risks: `os.remove`, `os.unlink`, `shutil.rmtree`, zapisy `open(..., w|a)`
-  - Secrets (api key/secret/password/token), AWS AKIA
-  - Network IOCs: `requests.*(http[s]://...)`, surowy `socket`
-- 🤖 Optional AI explanations (local): `bigcode/starcoder2‑3b` via HF Transformers  
+  - Filesystem risks: `os.remove`, `os.unlink`, `shutil.rmtree`, writes via `open(..., w|a)`
+  - Secrets (API key/secret/password/token), AWS AKIA
+  - Network IOCs: `requests.*(http[s]://...)`, raw `socket`
+- 🤖 Optional AI explanations (local): `bigcode/starcoder2-3b` via HF Transformers  
   Falls back to deterministic text if AI is unavailable.
 - 🐳 Optional Trivy (Docker) for dependency vulnerabilities & secrets
-- 📊 Dashboard: security score (severity‑weighted), top risk categories, recent history (local)
-- ✅ Cross‑platform: Linux / Windows / macOS, Python 3.9+
+- 📊 Dashboard: security score (severity-weighted), top risk categories, recent history (local)
+- ✅ Cross-platform: Linux / Windows / macOS, Python 3.9+
 - 🔓 MIT license
 
 ---
