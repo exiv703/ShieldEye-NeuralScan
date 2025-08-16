@@ -5,9 +5,6 @@
   <img src="https://img.shields.io/badge/License-MIT-6f42c1" />
 </p>
 
-<p align="center">
-  <img src="assets/brand-banner.svg" alt="NeuralScan" width="100%" />
-</p>
 
 <h1 align="center">🛡️ NeuralScan</h1>
 
