@@ -181,7 +181,7 @@ cp .env.example .env
 chmod +x run.sh
 
 # Install all dependencies (creates venv, installs packages)
-./run.sh install
+./run.sh --mode install
 ```
 
 ### 3. Launch the Application
