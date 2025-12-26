@@ -1,0 +1,68 @@
+{
+  "_comment": "ShieldEye NeuralScan - Default Configuration",
+  "_version": "1.0.0",
+  
+  "scanner": {
+    "ai_model": "bigcode/starcoder2-3b",
+    "ai_detail": "standard",
+    "use_trivy": false,
+    "save_history": true,
+    "min_scan_duration_ms": 2500,
+    "max_findings_per_category": 60
+  },
+  
+  "ui": {
+    "window_width": 1400,
+    "window_height": 900,
+    "theme": "dark",
+    "show_ai_badges": true
+  },
+  
+  "security": {
+    "policy_levels": {
+      "quick": {
+        "description": "Fast heuristic scan only",
+        "severity_weights": {
+          "Low": 0,
+          "Medium": 5,
+          "High": 15,
+          "Critical": 25
+        },
+        "category_cap": 40
+      },
+      "standard": {
+        "description": "Heuristics + AI analysis (recommended)",
+        "severity_weights": {
+          "Low": 5,
+          "Medium": 10,
+          "High": 20,
+          "Critical": 30
+        },
+        "category_cap": 60
+      },
+      "deep": {
+        "description": "Comprehensive analysis with detailed explanations",
+        "severity_weights": {
+          "Low": 10,
+          "Medium": 20,
+          "High": 30,
+          "Critical": 45
+        },
+        "category_cap": 80
+      }
+    }
+  },
+  
+  "paths": {
+    "data_dir": "data",
+    "scan_history": "data/scan_history.json",
+    "config_file": "data/config.json",
+    "chart_cache": "/tmp"
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(levelname)s - %(message)s",
+    "file": "data/neuralscan.log"
+  }
+}
