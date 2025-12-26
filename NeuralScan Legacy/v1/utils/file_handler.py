@@ -7,6 +7,7 @@ HISTORY_FILE = os.path.join(DATA_DIR, 'scan_history.json')
 LEGACY_FILE = 'scan_history.json'
 
 def load_scan_history():
+    """Load scan history from new location, with legacy fallback and migration."""
     if os.path.exists(HISTORY_FILE):
         try:
             with open(HISTORY_FILE, 'r') as f:
@@ -29,6 +30,7 @@ def load_scan_history():
     return []
 
 def save_scan_history(file_path, threat_count):
+    """Append a new scan history entry and persist to the new path."""
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
     except Exception:

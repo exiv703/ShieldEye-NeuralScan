@@ -1,0 +1,14 @@
+customtkinter>=5.2.2
+Pillow>=10.3.0
+matplotlib>=3.8.4
+
+# *** AI scanning (HF Transformers) ***
+transformers>=4.41.0
+accelerate>=0.31.0
+safetensors>=0.4.0
+
+# *** Torch is required for local inference ***
+torch>=2.2.0
+
+# *** Optional: container-based scanning hooks ***
+docker>=7.0.0
