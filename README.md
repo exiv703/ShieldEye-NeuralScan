@@ -16,7 +16,7 @@
 
 ---
 
-![ShieldEye NeuralScan Dashboard](assets/screenshots/dashboard.png)
+![ShieldEye NeuralScan Dashboard](assets/screenshots/dashboard_v2.png)
 
 </div>
 
@@ -96,12 +96,12 @@ Whether you're a security researcher, developer, or DevSecOps engineer, ShieldEy
 
 | Dashboard | Results |
 |:---------:|:-------:|
-| ![Dashboard](assets/screenshots/dashboard.png) | ![Results](assets/screenshots/results.png) |
+| ![Dashboard](assets/screenshots/dashboard_v2.png) | ![Results](assets/screenshots/results_v2.png) |
 | *Security posture overview and threat activity* | *Detailed findings with severity levels* |
 
 | Scan Configuration | Settings |
 |:------------------:|:--------:|
-| ![Scan](assets/screenshots/scan.png) | ![Settings](assets/screenshots/settings.png) |
+| ![Scan](assets/screenshots/scan_v2.png) | ![Settings](assets/screenshots/settings_v2.png) |
 | *File selection and scan detail level options* | *AI model and scanner configuration* |
 
 </div>
