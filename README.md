@@ -16,7 +16,11 @@
 
 ---
 
+<<<<<<< HEAD
 ![ShieldEye NeuralScan Dashboard](assets/screenshots/dashboard_v2.png)
+=======
+![ShieldEye NeuralScan Dashboard](assets/screenshots/dashboard.png)
+>>>>>>> 4ba1f6d (feat: add ShieldEye NeuralScan v2 and archive legacy v1)
 
 </div>
 
@@ -96,12 +100,20 @@ Whether you're a security researcher, developer, or DevSecOps engineer, ShieldEy
 
 | Dashboard | Results |
 |:---------:|:-------:|
+<<<<<<< HEAD
 | ![Dashboard](assets/screenshots/dashboard_v2.png) | ![Results](assets/screenshots/results_v2.png) |
+=======
+| ![Dashboard](assets/screenshots/dashboard.png) | ![Results](assets/screenshots/results.png) |
+>>>>>>> 4ba1f6d (feat: add ShieldEye NeuralScan v2 and archive legacy v1)
 | *Security posture overview and threat activity* | *Detailed findings with severity levels* |
 
 | Scan Configuration | Settings |
 |:------------------:|:--------:|
+<<<<<<< HEAD
 | ![Scan](assets/screenshots/scan_v2.png) | ![Settings](assets/screenshots/settings_v2.png) |
+=======
+| ![Scan](assets/screenshots/scan.png) | ![Settings](assets/screenshots/settings.png) |
+>>>>>>> 4ba1f6d (feat: add ShieldEye NeuralScan v2 and archive legacy v1)
 | *File selection and scan detail level options* | *AI model and scanner configuration* |
 
 </div>
