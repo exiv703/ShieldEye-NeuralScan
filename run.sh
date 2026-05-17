@@ -214,7 +214,8 @@ run_tests() {
     # shellcheck source=/dev/null
     source .venv/bin/activate
     if command -v pytest &> /dev/null; then
-        pytest tests/ -v || true
+        # Why: test failures were previously masked — test runner must signal real status
+        pytest tests/ -v
     else
         print_warning "pytest not installed; uncomment dev tools in requirements.txt to run tests"
     fi

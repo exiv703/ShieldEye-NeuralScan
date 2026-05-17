@@ -1,22 +1,13 @@
 {
   "_comment": "ShieldEye NeuralScan - Default Configuration",
   "_version": "1.0.0",
-  
-  "scanner": {
-    "ai_model": "bigcode/starcoder2-3b",
-    "ai_detail": "standard",
-    "use_trivy": false,
-    "save_history": true,
-    "min_scan_duration_ms": 2500,
-    "max_findings_per_category": 60
-  },
-  
-  "ui": {
-    "window_width": 1400,
-    "window_height": 900,
-    "theme": "dark",
-    "show_ai_badges": true
-  },
+  "_schema_comment": "// Why: flat schema matches what scanner.py and settings.py read directly",
+  "ai_enabled": true,
+  "ai_model": "bigcode/starcoder2-3b",
+  "ai_detail": "standard",
+  "use_trivy": false,
+  "save_history": true,
+  "scan_timeout": 2500,
   
   "security": {
     "policy_levels": {

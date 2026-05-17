@@ -101,17 +101,42 @@ class MainWindow(Gtk.ApplicationWindow):
         stats_title.add_css_class("sidebar-section-title")
         stats_title.set_halign(Gtk.Align.START)
         stats_box.append(stats_title)
+
+        def create_stat_row_with_ref(icon_name, label, value):
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+
+            icon = Gtk.Image.new_from_icon_name(icon_name)
+            icon.set_pixel_size(16)
+            icon.add_css_class("sidebar-stat-icon")
+            row.append(icon)
+
+            text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+            text_box.set_hexpand(True)
+
+            label_widget = Gtk.Label(label=label)
+            label_widget.add_css_class("sidebar-stat-label")
+            label_widget.set_halign(Gtk.Align.START)
+
+            value_widget = Gtk.Label(label=value)
+            value_widget.add_css_class("sidebar-stat-value")
+            value_widget.set_halign(Gtk.Align.START)
+
+            text_box.append(label_widget)
+            text_box.append(value_widget)
+            row.append(text_box)
+
+            return row, value_widget
         
         # Total Scans
-        self.total_scans_label = self._create_stat_row("folder-symbolic", "Total Scans", "0")
+        self.total_scans_label, self.stat_scans_label = create_stat_row_with_ref("folder-symbolic", "Total Scans", "0")
         stats_box.append(self.total_scans_label)
         
         # Threats Found
-        self.threats_found_label = self._create_stat_row("dialog-warning-symbolic", "Threats Found", "0")
+        self.threats_found_label, self.stat_threats_label = create_stat_row_with_ref("dialog-warning-symbolic", "Threats Found", "0")
         stats_box.append(self.threats_found_label)
         
         # Last Scan
-        self.last_scan_label = self._create_stat_row("document-open-recent-symbolic", "Last Scan", "Never")
+        self.last_scan_label, self.stat_last_scan_label = create_stat_row_with_ref("document-open-recent-symbolic", "Last Scan", "Never")
         stats_box.append(self.last_scan_label)
         
         self.sidebar.append(stats_box)
@@ -133,13 +158,24 @@ class MainWindow(Gtk.ApplicationWindow):
         status_title.add_css_class("sidebar-section-title")
         status_title.set_halign(Gtk.Align.START)
         status_box.append(status_title)
+
+        # Why: status reflects real scanner state, not hardcoded marketing strings
+        scanner = getattr(getattr(self, "scan_view", None), "scanner", None)
+        # Why: Trivy state lives in TrivyScanner after H3 refactor — reading scanner directly was stale
+        trivy_scanner = getattr(scanner, "trivy_scanner", None)
         
         # Docker Status
-        docker_status = self._create_status_row("Docker Engine", "Active")
+        docker_status = self._create_status_row(
+            "Docker Engine",
+            "Active" if trivy_scanner and trivy_scanner.docker_client is not None else "Unavailable"
+        )
         status_box.append(docker_status)
         
         # Trivy Status
-        trivy_status = self._create_status_row("Trivy Scanner", "Ready")
+        trivy_status = self._create_status_row(
+            "Trivy Scanner",
+            "Active" if trivy_scanner and trivy_scanner.trivy_available else "Unavailable"
+        )
         status_box.append(trivy_status)
         
         self.sidebar.append(status_box)
@@ -185,31 +221,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.nav_buttons[id] = btn
         return btn
     
-    def _create_stat_row(self, icon_name, label, value):
-        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        
-        icon = Gtk.Image.new_from_icon_name(icon_name)
-        icon.set_pixel_size(16)
-        icon.add_css_class("sidebar-stat-icon")
-        row.append(icon)
-        
-        text_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-        text_box.set_hexpand(True)
-        
-        label_widget = Gtk.Label(label=label)
-        label_widget.add_css_class("sidebar-stat-label")
-        label_widget.set_halign(Gtk.Align.START)
-        
-        value_widget = Gtk.Label(label=value)
-        value_widget.add_css_class("sidebar-stat-value")
-        value_widget.set_halign(Gtk.Align.START)
-        
-        text_box.append(label_widget)
-        text_box.append(value_widget)
-        row.append(text_box)
-        
-        return row
-    
     def _create_status_row(self, label, status):
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         
@@ -240,7 +251,8 @@ class MainWindow(Gtk.ApplicationWindow):
         self.results_view = ResultsView()
         self.stack.add_named(self.results_view, "results")
         
-        self.settings_view = SettingsView()
+        # Why: main_window ref required for reload_config() call after Apply
+        self.settings_view = SettingsView(main_window=self)
         self.stack.add_named(self.settings_view, "settings")
 
     def _on_nav_clicked(self, widget, view_name):
@@ -278,16 +290,10 @@ class MainWindow(Gtk.ApplicationWindow):
     
     def _update_stat_value(self, stat_row, new_value):
         """Update the value label in a stat row"""
-        # stat_row is a Box containing icon and text_box
-        # text_box contains label and value widgets
-        child = stat_row.get_first_child()
-        while child:
-            if isinstance(child, Gtk.Box):  # This is the text_box
-                # Find the value label (second child)
-                value_child = child.get_first_child()
-                if value_child:
-                    value_child = value_child.get_next_sibling()
-                    if value_child and isinstance(value_child, Gtk.Label):
-                        value_child.set_label(new_value)
-                        return
-            child = child.get_next_sibling()
+        # Why: direct refs are O(1) and layout-change-safe; child traversal breaks on any widget reorder
+        if stat_row is self.total_scans_label:
+            self.stat_scans_label.set_label(new_value)
+        elif stat_row is self.threats_found_label:
+            self.stat_threats_label.set_label(new_value)
+        elif stat_row is self.last_scan_label:
+            self.stat_last_scan_label.set_label(new_value)

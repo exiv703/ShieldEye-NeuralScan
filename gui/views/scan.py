@@ -2,7 +2,8 @@ import gi
 import threading
 import os
 import time
-from gi.repository import Gtk, GLib, Gio, Pango
+import logging
+from gi.repository import Gtk, GLib, Pango
 from backend import SecurityScanner
 from utils.file_handler import save_scan_history, load_scan_history
 
@@ -203,7 +204,7 @@ class ScanView(Gtk.Box):
             stored_file_name = entry.get('file', '')
             stored_file_path = entry.get('file_path', '')
             
-            file_path = stored_file_path or stored_file_name or ''
+            file_path = entry.get('file_path', '') or stored_file_name or ''
             display_name = stored_file_name or os.path.basename(stored_file_path) or 'Unknown file'
 
             threats = entry.get('threats', 0)
@@ -257,7 +258,7 @@ class ScanView(Gtk.Box):
                 path = file.get_path()
                 self._start_scan(path)
         except Exception as e:
-            print(f"Error selecting file: {e}")
+            logging.debug("Error selecting file: %s", e)
 
     def _start_scan(self, path):
         if not os.path.exists(path):
@@ -311,6 +312,7 @@ class ScanView(Gtk.Box):
         if progress_msg:
             self.progress_status.set_label(progress_msg)
             
+            # Why: progress message must match what scanner actually emits — fake progress is misleading
             if "static analysis" in progress_msg.lower():
                 self.progress_bar.set_fraction(0.2)
                 self.progress_bar.set_text("20% - Static Analysis")
@@ -326,12 +328,25 @@ class ScanView(Gtk.Box):
     def _scan_worker(self, path, detail='standard'):
         try:
             report = self.scanner.scan_file_for_malware(path, detail=detail)
+
+            # Why: error result must never reach display_report() — clean result and failed scan are not the same thing
+            if isinstance(report, dict) and "error" in report:
+                raw_error = str(report.get("error") or "").strip()
+                if not raw_error:
+                    user_error = "Scan failed. The scanner could not complete the analysis."
+                else:
+                    user_error = f"Scan failed: {raw_error}"
+                GLib.idle_add(self._on_scan_error, user_error)
+                return
             
             findings = report.get("findings", [])
             try:
-                save_scan_history(path, len(findings))
-            except Exception:
-                pass
+                # Why: save_history=False lets users run scans without polluting history — useful for ad-hoc checks
+                if self.scanner.settings.get('save_history', True):
+                    save_scan_history(path, len(findings), report.get("security_score", 0))
+            except Exception as e:
+                # Why: history save failure should not crash the scan but must be visible in logs
+                logging.warning("Failed to save scan history for '%s': %s", path, e)
             
             GLib.idle_add(self.findings_value.set_label, str(len(findings)))
                 

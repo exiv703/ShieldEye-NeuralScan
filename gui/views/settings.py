@@ -1,20 +1,27 @@
 import gi
+import json
+import os
 
 gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Adw, GLib
-from backend.scanner import SecurityScanner
+from gi.repository import Gtk, GLib
+
+CONFIG_FILE = os.path.join('data', 'config.json')
+MODEL_OPTIONS = [
+    "bigcode/starcoder2-3b",
+    "bigcode/starcoder2-7b",
+    "mistralai/Mixtral-8x7B-Instruct-v0.1"
+]
 
 class SettingsView(Gtk.Box):
-    def __init__(self):
+    def __init__(self, main_window=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=20)
+        self.main_window = main_window
         self.set_margin_top(24)
         self.set_margin_bottom(24)
         self.set_margin_start(24)
         self.set_margin_end(24)
-        
-        self.scanner = SecurityScanner()
+        self.settings = self._load_config()
         
         title = Gtk.Label(label="Settings")
         title.add_css_class("title-1")
@@ -31,20 +38,15 @@ class SettingsView(Gtk.Box):
         ai_group = self._create_group("AI Configuration")
         content.append(ai_group)
         
-        self.model_combo = Gtk.DropDown.new_from_strings([
-            "bigcode/starcoder2-3b",
-            "bigcode/starcoder2-7b",
-            "mistralai/Mixtral-8x7B-Instruct-v0.1"
-        ])
-        current_model = getattr(self.scanner, 'desired_model_name', "bigcode/starcoder2-3b")
-        models = ["bigcode/starcoder2-3b", "bigcode/starcoder2-7b", "mistralai/Mixtral-8x7B-Instruct-v0.1"]
-        if current_model in models:
-            self.model_combo.set_selected(models.index(current_model))
+        self.model_combo = Gtk.DropDown.new_from_strings(MODEL_OPTIONS)
+        current_model = self.settings.get('ai_model', MODEL_OPTIONS[0])
+        if current_model in MODEL_OPTIONS:
+            self.model_combo.set_selected(MODEL_OPTIONS.index(current_model))
             
         ai_group.append(self._create_row("AI Model", self.model_combo, "Select the AI model used for code analysis."))
         
         self.detail_combo = Gtk.DropDown.new_from_strings(["short", "standard", "deep"])
-        current_detail = self.scanner.settings.get('ai_detail', 'standard')
+        current_detail = self.settings.get('ai_detail', 'standard')
         details = ["short", "standard", "deep"]
         if current_detail in details:
             self.detail_combo.set_selected(details.index(current_detail))
@@ -52,18 +54,18 @@ class SettingsView(Gtk.Box):
         ai_group.append(self._create_row("AI Explanation Detail", self.detail_combo, "Controls verbosity of AI findings."))
 
         self.full_ai_switch = Gtk.Switch()
-        self.full_ai_switch.set_active(True)
+        self.full_ai_switch.set_active(self.settings.get('ai_enabled', True))
         ai_group.append(self._create_row("Full AI Mode", self.full_ai_switch, "Enables AI badges in UI."))
 
         scan_group = self._create_group("Scanner Options")
         content.append(scan_group)
         
         self.trivy_switch = Gtk.Switch()
-        self.trivy_switch.set_active(self.scanner.settings.get('use_trivy', False))
+        self.trivy_switch.set_active(self.settings.get('use_trivy', False))
         scan_group.append(self._create_row("Use Trivy", self.trivy_switch, "Include Trivy findings (requires Docker)."))
         
         self.history_switch = Gtk.Switch()
-        self.history_switch.set_active(self.scanner.settings.get('save_history', True))
+        self.history_switch.set_active(self.settings.get('save_history', True))
         scan_group.append(self._create_row("Save Scan History", self.history_switch, "Persist results to dashboard history."))
         
         duration_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -82,7 +84,9 @@ class SettingsView(Gtk.Box):
         duration_box.append(top_row)
         
         self.duration_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 5000, 50)
-        self.duration_scale.set_value(2500)
+        current_timeout = int(self.settings.get('scan_timeout', 2500))
+        self.duration_scale.set_value(current_timeout)
+        self.duration_val_label.set_label(str(current_timeout))
         self.duration_scale.connect("value-changed", lambda w: self.duration_val_label.set_label(str(int(w.get_value()))))
         duration_box.append(self.duration_scale)
         
@@ -148,10 +152,41 @@ class SettingsView(Gtk.Box):
         
         return row
 
+    def _load_config(self):
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    return loaded
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            pass
+
+        return {}
+
     def apply_settings(self, widget):
+        selected_model_item = self.model_combo.get_selected_item()
+        selected_detail_item = self.detail_combo.get_selected_item()
+
+        self.settings.update({
+            'ai_model': selected_model_item.get_string() if selected_model_item else MODEL_OPTIONS[0],
+            'ai_detail': selected_detail_item.get_string() if selected_detail_item else 'standard',
+            'ai_enabled': self.full_ai_switch.get_active(),
+            'use_trivy': self.trivy_switch.get_active(),
+            'save_history': self.history_switch.get_active(),
+            'scan_timeout': int(self.duration_scale.get_value())
+        })
+
+        os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
+        # Why: settings are persisted to data/config.json — SecurityScanner reads this on next scan init
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(self.settings, f, indent=4)
+
+        # Why: reload_config() picks up new settings immediately — user does not need to restart the app
+        if hasattr(self, 'main_window'):
+            scanner = getattr(getattr(getattr(self, 'main_window', None), 'scan_view', None), 'scanner', None)
+            if scanner:
+                scanner.reload_config()
+
         self.saved_lbl.set_visible(True)
-        
-        print(f"Model: {self.model_combo.get_selected_item().get_string()}")
-        print(f"Trivy: {self.trivy_switch.get_active()}")
-        
+
         GLib.timeout_add(2000, lambda: self.saved_lbl.set_visible(False))

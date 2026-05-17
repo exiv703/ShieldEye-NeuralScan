@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 import gi
 
 gi.require_version('Gtk', '4.0')
@@ -34,7 +35,7 @@ class NeuralScanApp(Gtk.Application):
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
             )
         except Exception as e:
-            print(f"Failed to load CSS: {e}")
+            logging.warning("Failed to load CSS: %s", e)
 
 if __name__ == '__main__':
     app = NeuralScanApp()

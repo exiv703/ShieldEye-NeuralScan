@@ -1,12 +1,11 @@
 import gi
 import os
 import tempfile
+import logging
 from datetime import datetime, timedelta
-import random
 
 gi.require_version('Gtk', '4.0')
-gi.require_version('GdkPixbuf', '2.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, Pango, GLib
+from gi.repository import Gtk
 
 import matplotlib
 matplotlib.use('Agg') # Backend for saving to file
@@ -43,7 +42,7 @@ class DashboardView(Gtk.Box):
         title.set_halign(Gtk.Align.START)
         header_box.append(title)
         
-        # Spacer
+        # Why: this flexible spacer keeps status and action controls pinned to the right edge
         spacer = Gtk.Box()
         spacer.set_hexpand(True)
         header_box.append(spacer)
@@ -56,7 +55,9 @@ class DashboardView(Gtk.Box):
         status_box.set_valign(Gtk.Align.CENTER)
         dot = Gtk.Box()
         dot.add_css_class("status-dot")
-        status_lbl = Gtk.Label(label="Engine: Active")
+        scanner = getattr(getattr(self.main_window, "scan_view", None), "scanner", None) if self.main_window else None
+        status_lbl = Gtk.Label(label=f"Engine: {'Active' if scanner and scanner.ai_ready.is_set() else 'Unavailable'}")
+        self.engine_status_lbl = status_lbl
         status_lbl.add_css_class("text-muted")
         status_lbl.set_halign(Gtk.Align.START)
         status_box.append(dot)
@@ -75,7 +76,7 @@ class DashboardView(Gtk.Box):
         
         self.append(header_box)
         
-        # 2. Scrollable Content Area
+        # Why: wrapping cards in a scroller prevents vertical clipping on smaller windows
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -244,6 +245,12 @@ class DashboardView(Gtk.Box):
 
     def refresh(self, widget=None):
         self.scan_history = load_scan_history()
+
+        scanner = getattr(getattr(self.main_window, "scan_view", None), "scanner", None) if self.main_window else None
+        if hasattr(self, "engine_status_lbl"):
+            self.engine_status_lbl.set_label(
+                f"Engine: {'Active' if scanner and scanner.ai_ready.is_set() else 'Unavailable'}"
+            )
         
         # Update sidebar stats in main window
         if self.main_window:
@@ -259,11 +266,8 @@ class DashboardView(Gtk.Box):
              # Basic logic: take average of last 5 scans or just last one
              # For design match, let's use last scan
              last = self.scan_history[-1]
-             # Score isn't explicitly saved in history in file_handler yet (only threats), 
-             # so we might need to mock or derive it.
-             # Let's derive a mock score from threats count: 100 - (threats * 5)
-             threats = int(last.get('threats', 0))
-             score = max(0, 100 - (threats * 5))
+             # Why: score comes from scanner output, not derived from threat count
+             score = int(last.get('security_score', 0))
              self.last_security_score = score
         else:
             score = 100
@@ -307,7 +311,7 @@ class DashboardView(Gtk.Box):
         if not self.scan_history:
              self.surface_list.append(Gtk.Label(label="No data available", css_classes=["text-muted"]))
         else:
-            # Use real risk categories from last_risk_categories if available
+            # Why: scanner-provided categories surface actionable risk classes instead of generic threat totals
             if self.last_risk_categories and len(self.last_risk_categories) > 0:
                 # Display real categories from scanner
                 for category in self.last_risk_categories[:5]:  # Limit to top 5
@@ -384,8 +388,8 @@ class DashboardView(Gtk.Box):
                     # Parse date and sum threats for that day
                     threats = int(entry.get('threats', 0))
                     threats_by_date[date_str] += threats
-                except:
-                    pass
+                except Exception as e:
+                    logging.warning("Skipping invalid chart history entry for date '%s': %s", date_str, e)
             
             # Always create 7 days of date labels (last 7 days)
             dates = []
@@ -398,9 +402,9 @@ class DashboardView(Gtk.Box):
                 # Use real data if available for this date, otherwise 0
                 counts.append(threats_by_date.get(date_str, 0))
             
-            print(f"[DEBUG] Generating chart with {len(dates)} data points")
-            print(f"[DEBUG] Counts: {counts}")
-            print(f"[DEBUG] Scan history length: {len(self.scan_history)}")
+            logging.debug("[DEBUG] Generating chart with %s data points", len(dates))
+            logging.debug("[DEBUG] Counts: %s", counts)
+            logging.debug("[DEBUG] Scan history length: %s", len(self.scan_history))
                     
             # Plotting with larger size
             plt.style.use('dark_background')
@@ -445,19 +449,18 @@ class DashboardView(Gtk.Box):
             plt.savefig(tmp_path, format='png', facecolor='#161b22', bbox_inches='tight')
             plt.close(fig)
             
-            print(f"[DEBUG] Chart saved to: {tmp_path}")
-            print(f"[DEBUG] File exists: {os.path.exists(tmp_path)}")
+            logging.debug("[DEBUG] Chart saved to: %s", tmp_path)
+            logging.debug("[DEBUG] File exists: %s", os.path.exists(tmp_path))
             
             # Update Picture Widget
             from gi.repository import Gio
             file = Gio.File.new_for_path(tmp_path)
             self.chart_picture.set_file(file)
-            print(f"[DEBUG] Chart picture set from file")
+            logging.debug("[DEBUG] Chart picture set from file")
             
         except Exception as e:
-            print(f"[ERROR] Failed to generate chart: {e}")
-            import traceback
-            traceback.print_exc()
+            logging.debug("[ERROR] Failed to generate chart: %s", e)
+            logging.debug("Chart generation failed", exc_info=True)
         
     def _on_run_scan_clicked(self, btn):
         if self.main_window:
