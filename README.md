@@ -6,13 +6,13 @@
 
 *Heuristic detection • Optional local AI explanations • Optional Trivy filesystem scan*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![GTK](https://img.shields.io/badge/GTK-4.0-4A86CF?logo=gtk&logoColor=white)](https://www.gtk.org/)
-[![Transformers](https://img.shields.io/badge/🤗-Transformers-FFD21E)](https://huggingface.co/docs/transformers)
-[![Docker](https://img.shields.io/badge/Docker-Optional-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1F6FEB?style=for-the-badge&labelColor=22272E)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/Python-3.10+-1F6FEB?logo=python&logoColor=white&style=for-the-badge&labelColor=22272E)](https://www.python.org/)
+[![GTK](https://img.shields.io/badge/GTK-4.0-1F6FEB?logo=gtk&logoColor=white&style=for-the-badge&labelColor=22272E)](https://www.gtk.org/)
+[![Transformers](https://img.shields.io/badge/🤗-Transformers-1F6FEB?style=for-the-badge&labelColor=22272E)](https://huggingface.co/docs/transformers)
+[![Docker](https://img.shields.io/badge/Docker-Optional-1F6FEB?logo=docker&logoColor=white&style=for-the-badge&labelColor=22272E)](https://www.docker.com/)
 
-[Features](#-key-features) • [Quick Start](#-quick-start) • [Screenshots](#-screenshots) • [Documentation](#-documentation) • [Contributing](#-contributing)
+[Features](#features) • [Quick Start](#quick-start) • [Screenshots](#screenshots) • [Documentation](#documentation) • [Contributing](#contributing)
 
 ---
 
@@ -22,7 +22,7 @@
 
 ---
 
-## 🎯 What is ShieldEye NeuralScan?
+## What is ShieldEye NeuralScan?
 
 ShieldEye NeuralScan is a GTK4 desktop app that scans source files with regex-based security rules, optionally generates local AI explanations, and can add optional Trivy filesystem results through Docker.
 
@@ -37,7 +37,7 @@ What it currently does:
 
 ---
 
-## ✨ Key Features
+## Features
 
 - **29 heuristic rules** covering SQL injection, command injection, dynamic code execution (`eval`/`exec`), unsafe deserialization, weak cryptography, hardcoded secrets, path traversal/filesystem risks, and network/exfiltration indicators
 - **Local AI inference** via Hugging Face Transformers with selectable models: `bigcode/starcoder2-3b`, `bigcode/starcoder2-7b`, `mistralai/Mixtral-8x7B-Instruct-v0.1`
@@ -48,7 +48,7 @@ What it currently does:
 
 ---
 
-## 🖼️ Screenshots
+## Screenshots
 
 <div align="center">
 
@@ -66,7 +66,7 @@ What it currently does:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 Current module layout:
 
@@ -108,7 +108,7 @@ Current module layout:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -156,7 +156,7 @@ Install/start Docker, then enable **Use Trivy** in the app Settings view.
 
 ---
 
-## 🎮 Using `run.sh`
+## Using `run.sh`
 
 Interactive mode:
 
@@ -179,7 +179,7 @@ Help:
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Runtime settings are read from `data/config.json` (created from `config.default.json` on install if missing).
 
@@ -207,9 +207,9 @@ Example:
 
 ---
 
-## 📖 Documentation
+## Documentation
 
-- Detection rules live in `backend/rules.py` — contributions welcome.
+- Detection rules live in `backend/rules.py` - contributions welcome.
 - Scanner orchestration: `backend/scanner.py`
 - AI model loading/explanations: `backend/ai_analyzer.py`
 - Optional Trivy integration: `backend/trivy.py`
@@ -217,7 +217,7 @@ Example:
 - Scoring logic: `backend/scoring.py`
 - Tests: `tests/` (8 pytest tests)
 
-## 🛠️ Development
+## Development
 
 ### Local setup
 
@@ -269,31 +269,25 @@ ShieldEye-NeuralScan/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Here's how to get started:
+The most useful contribution here is detection rules. They live in
+`backend/rules.py` as plain dicts (pattern + CWE/OWASP metadata), so adding one
+is a few lines plus a test case under `tests/samples/`.
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m 'Add amazing feature'`
-4. **Push** to the branch: `git push origin feature/amazing-feature`
-5. **Open** a Pull Request
-
-**Guidelines:**
-- Follow PEP 8 style guidelines
-- Add tests for new security patterns
-- Update documentation for new features
-- Ensure all tests pass before submitting
+1. Fork and branch off `main`.
+2. Add the rule, plus a sample that triggers it.
+3. Keep to PEP 8 with type hints, and make sure `pytest` passes before opening a PR.
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Hugging Face](https://huggingface.co/) – Transformers library and model hosting
 - [GTK Project](https://www.gtk.org/) – Cross-platform GUI toolkit
@@ -303,16 +297,10 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 
 ---
 
-<div align="center">
+## Related Projects
 
-**⭐ If you find ShieldEye NeuralScan useful, please consider giving it a star! ⭐**
+Part of the **ShieldEye** toolkit:
 
-[![Star on GitHub](https://img.shields.io/github/stars/exiv703/ShieldEye-NeuralScan?style=social)](https://github.com/exiv703/ShieldEye-NeuralScan)
-
----
-
-*Built with ❤️ for the security community*
-
-**ShieldEye NeuralScan** – Securing code with AI, one scan at a time 🛡️
-
-</div>
+- **[ShieldEye Core](https://github.com/exiv703/ShieldEye-Core)** - network security scanner (Nmap + GTK4)
+- **[ShieldEye SurfaceScan](https://github.com/exiv703/ShieldEye-SurfaceScan)** - web attack-surface mapper
+- **[ShieldEye ComplianceScan](https://github.com/exiv703/ShieldEye_ComplianceScan)** - GDPR / PCI-DSS / ISO 27001 compliance scanner
