@@ -1,6 +1,6 @@
 import sys
-import os
 import logging
+from pathlib import Path
 import gi
 
 gi.require_version('Gtk', '4.0')
@@ -25,10 +25,10 @@ class NeuralScanApp(Gtk.Application):
 
     def _load_css(self):
         css_provider = Gtk.CssProvider()
-        css_path = os.path.join(os.path.dirname(__file__), 'style.css')
-        
+        css_path = Path(__file__).parent / 'style.css'
+
         try:
-            css_provider.load_from_path(css_path)
+            css_provider.load_from_path(str(css_path))
             Gtk.StyleContext.add_provider_for_display(
                 Gdk.Display.get_default(),
                 css_provider,

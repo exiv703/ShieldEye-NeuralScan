@@ -1,14 +1,14 @@
 import gi
-import os
 import tempfile
 import logging
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk
+from gi.repository import Gtk, Gio
 
 import matplotlib
-matplotlib.use('Agg') # Backend for saving to file
+matplotlib.use('Agg')  # render to PNG without a display server
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
@@ -33,7 +33,7 @@ class DashboardView(Gtk.Box):
         self.set_margin_start(0)
         self.set_margin_end(0)
         
-        # 1. Header Area
+        # Header
         header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         header_box.add_css_class("view-header")
         
@@ -42,7 +42,7 @@ class DashboardView(Gtk.Box):
         title.set_halign(Gtk.Align.START)
         header_box.append(title)
         
-        # Why: this flexible spacer keeps status and action controls pinned to the right edge
+        # Flexible spacer pins the status and action controls to the right edge.
         spacer = Gtk.Box()
         spacer.set_hexpand(True)
         header_box.append(spacer)
@@ -76,7 +76,7 @@ class DashboardView(Gtk.Box):
         
         self.append(header_box)
         
-        # Why: wrapping cards in a scroller prevents vertical clipping on smaller windows
+        # Wrap the cards in a scroller so they don't clip vertically on smaller windows.
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_vexpand(True)
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -89,7 +89,7 @@ class DashboardView(Gtk.Box):
         content_box.set_margin_bottom(40)
         scrolled.set_child(content_box)
         
-        # 3. Threat Activity Chart
+        # Threat activity chart
         self.chart_card = self._create_card("Threat Activity")
         self.chart_picture = Gtk.Picture()
         self.chart_picture.set_size_request(-1, 400)  # Set minimum height for chart
@@ -97,7 +97,7 @@ class DashboardView(Gtk.Box):
         self.chart_card.get_child().append(self.chart_picture) # Add to card content box
         content_box.append(self.chart_card)
         
-        # 4. Middle Row: Security Posture & Attack Surface
+        # Middle row: posture + attack surface
         mid_grid = Gtk.Grid()
         mid_grid.set_column_spacing(24)
         mid_grid.set_column_homogeneous(True)
@@ -113,7 +113,7 @@ class DashboardView(Gtk.Box):
         self._build_surface_content(self.surface_card.get_child())
         mid_grid.attach(self.surface_card, 1, 0, 1, 1)
         
-        # 5. Bottom Row: Last Scan Summary & Threats Found
+        # Bottom row: last scan summary + threats found
         bottom_grid = Gtk.Grid()
         bottom_grid.set_column_spacing(24)
         bottom_grid.set_column_homogeneous(True)
@@ -148,7 +148,6 @@ class DashboardView(Gtk.Box):
         return frame
 
     def _build_posture_content(self, box):
-        # WEAK Label
         self.posture_status_lbl = Gtk.Label(label="UNKNOWN")
         self.posture_status_lbl.add_css_class("text-huge")
         self.posture_status_lbl.set_halign(Gtk.Align.START)
@@ -256,19 +255,13 @@ class DashboardView(Gtk.Box):
         if self.main_window:
             self.main_window.update_sidebar_stats()
         
-        # 1. Update Chart
         self._update_chart()
-        
-        # 2. Update Posture
-        # Logic: Calculate average score or use last score
-        score = 0
+
+        # Posture mirrors the latest scan's score; with no history we treat it as clean.
         if self.scan_history:
-             # Basic logic: take average of last 5 scans or just last one
-             # For design match, let's use last scan
-             last = self.scan_history[-1]
-             # Why: score comes from scanner output, not derived from threat count
-             score = int(last.get('security_score', 0))
-             self.last_security_score = score
+            last = self.scan_history[-1]
+            score = int(last.get('security_score', 0))
+            self.last_security_score = score
         else:
             score = 100
         
@@ -300,24 +293,21 @@ class DashboardView(Gtk.Box):
             self.posture_bar.remove_css_class("progress-medium")
             self.posture_bar.remove_css_class("progress-strong")
 
-        # 3. Update Attack Surface (use real risk categories if available)
-        # Clear list
+        # Attack surface: prefer the scanner's risk categories, fall back to a threat total.
         child = self.surface_list.get_first_child()
         while child:
-            next = child.get_next_sibling()
+            sibling = child.get_next_sibling()
             self.surface_list.remove(child)
-            child = next
-            
+            child = sibling
+
         if not self.scan_history:
              self.surface_list.append(Gtk.Label(label="No data available", css_classes=["text-muted"]))
         else:
-            # Why: scanner-provided categories surface actionable risk classes instead of generic threat totals
-            if self.last_risk_categories and len(self.last_risk_categories) > 0:
-                # Display real categories from scanner
-                for category in self.last_risk_categories[:5]:  # Limit to top 5
+            # Prefer the scanner's risk categories over a generic threat total when we have them.
+            if self.last_risk_categories:
+                for category in self.last_risk_categories[:5]:
                     name = category.get('category', 'Unknown')
                     count = category.get('count', 0)
-                    # Determine risk level based on count
                     if count >= 3:
                         risk = "High"
                     elif count >= 2:
@@ -326,7 +316,6 @@ class DashboardView(Gtk.Box):
                         risk = "Low"
                     self.surface_list.append(self._create_surface_row(name, risk, count))
             else:
-                # Fallback: show that scan was done but no specific categories
                 last = self.scan_history[-1]
                 threats = int(last.get('threats', 0))
                 if threats > 0:
@@ -335,13 +324,11 @@ class DashboardView(Gtk.Box):
                 else:
                     self.surface_list.append(Gtk.Label(label="No threats detected", css_classes=["text-muted"]))
 
-        # 4. Summary Cards
+        # Summary cards
         if self.scan_history:
             last = self.scan_history[-1]
             date_str = last.get('date', 'Unknown')
             threats = last.get('threats', 0)
-            
-            # Show file name if available
             file_name = last.get('file', 'Unknown file')
             self.summary_date_lbl.set_label(f"{file_name}")
             self.summary_dur_lbl.set_label(f"Scanned on {date_str}")
@@ -377,91 +364,55 @@ class DashboardView(Gtk.Box):
 
     def _update_chart(self):
         try:
-            # Generate data - show empty chart if no data, real data if available
-            # Group scan history by date and sum threats per day
-            from collections import defaultdict
-            
-            threats_by_date = defaultdict(int)
+            threats_by_date: dict[str, int] = defaultdict(int)
             for entry in self.scan_history:
                 date_str = entry.get('date', '')
                 try:
-                    # Parse date and sum threats for that day
-                    threats = int(entry.get('threats', 0))
-                    threats_by_date[date_str] += threats
-                except Exception as e:
+                    threats_by_date[date_str] += int(entry.get('threats', 0))
+                except (ValueError, TypeError) as e:
                     logging.warning("Skipping invalid chart history entry for date '%s': %s", date_str, e)
-            
-            # Always create 7 days of date labels (last 7 days)
+
+            # Fixed 7-day window so the chart keeps its shape even with sparse history.
             dates = []
             counts = []
             base = datetime.now()
             for i in range(7):
-                d = base - timedelta(days=6-i)
-                date_str = d.strftime('%Y-%m-%d')
+                d = base - timedelta(days=6 - i)
                 dates.append(d)
-                # Use real data if available for this date, otherwise 0
-                counts.append(threats_by_date.get(date_str, 0))
-            
-            logging.debug("[DEBUG] Generating chart with %s data points", len(dates))
-            logging.debug("[DEBUG] Counts: %s", counts)
-            logging.debug("[DEBUG] Scan history length: %s", len(self.scan_history))
-                    
-            # Plotting with larger size
+                counts.append(threats_by_date.get(d.strftime('%Y-%m-%d'), 0))
+
             plt.style.use('dark_background')
             fig, ax = plt.subplots(figsize=(10, 4), dpi=100)
-            
-            # Colors matching theme
-            # bg_color = #161b22
             fig.patch.set_facecolor('#161b22')
             ax.set_facecolor('#161b22')
-            
-            # Only plot line if there's actual data (not all zeros)
+
             if any(count > 0 for count in counts):
-                # Line color accent blue #58a6ff
                 ax.plot(dates, counts, color='#58a6ff', marker='o', linewidth=2, markersize=5)
-                # Fill under
                 ax.fill_between(dates, counts, color='#58a6ff', alpha=0.1)
             else:
-                # Empty chart - just plot the baseline at 0
+                # Flat baseline when there's nothing to plot yet.
                 ax.plot(dates, counts, color='#58a6ff', linewidth=1, alpha=0.3)
-            
-            # Grid
+
             ax.grid(True, color='#30363d', linestyle='-', linewidth=0.5, alpha=0.5)
-            
-            # Spines
             for spine in ax.spines.values():
                 spine.set_visible(False)
-                
-            # Ticks
             ax.tick_params(axis='x', colors='#8b949e')
             ax.tick_params(axis='y', colors='#8b949e')
-            
-            # Date format
             ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
             plt.xticks(rotation=0)
-            
             plt.tight_layout()
-            
-            # Save to temp file
+
             with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
                 tmp_path = tmp.name
-            
             plt.savefig(tmp_path, format='png', facecolor='#161b22', bbox_inches='tight')
             plt.close(fig)
-            
-            logging.debug("[DEBUG] Chart saved to: %s", tmp_path)
-            logging.debug("[DEBUG] File exists: %s", os.path.exists(tmp_path))
-            
-            # Update Picture Widget
-            from gi.repository import Gio
+
             file = Gio.File.new_for_path(tmp_path)
             self.chart_picture.set_file(file)
-            logging.debug("[DEBUG] Chart picture set from file")
-            
-        except Exception as e:
-            logging.debug("[ERROR] Failed to generate chart: %s", e)
-            logging.debug("Chart generation failed", exc_info=True)
-        
+
+        except Exception:
+            logging.exception("Chart generation failed")
+
     def _on_run_scan_clicked(self, btn):
         if self.main_window:
             self.main_window.navigate_to("scan")

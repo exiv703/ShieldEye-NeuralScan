@@ -1,9 +1,9 @@
-# Why: export formats are pure data transformations, no scanner state needed
+"""Report exporters: pure transformations from a scan result to an output format."""
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
-def export_report(scan_result: Dict[str, Any], format: str = 'json', output_path: str = None) -> str:
+def export_report(scan_result: Dict[str, Any], format: str = 'json', output_path: Optional[str] = None) -> str:
     if format == 'json':
         report = _export_json(scan_result)
     elif format == 'markdown':

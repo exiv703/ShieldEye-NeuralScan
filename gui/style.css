@@ -206,6 +206,10 @@ button:focus-visible {
     margin-right: 8px;
 }
 
+.status-dot.status-inactive {
+    background-color: @text_secondary_color;
+}
+
 /* Header controls pill (Engine status + Run Scan) */
 .header-controls {
     background-color: alpha(@panel_bg_color, 0.9);

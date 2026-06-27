@@ -39,7 +39,11 @@ class MainWindow(Gtk.ApplicationWindow):
         # Initialize Views
         self.views = {}
         self._init_views()
-        
+
+        # System Status reads the scanners created in _init_views(), so it must
+        # run after the views exist.
+        self.update_system_status()
+
         # Show initial view
         self._on_nav_clicked(None, "dashboard")
 
@@ -159,24 +163,15 @@ class MainWindow(Gtk.ApplicationWindow):
         status_title.set_halign(Gtk.Align.START)
         status_box.append(status_title)
 
-        # Why: status reflects real scanner state, not hardcoded marketing strings
-        scanner = getattr(getattr(self, "scan_view", None), "scanner", None)
-        # Why: Trivy state lives in TrivyScanner after H3 refactor — reading scanner directly was stale
-        trivy_scanner = getattr(scanner, "trivy_scanner", None)
-        
-        # Docker Status
-        docker_status = self._create_status_row(
-            "Docker Engine",
-            "Active" if trivy_scanner and trivy_scanner.docker_client is not None else "Unavailable"
-        )
-        status_box.append(docker_status)
-        
-        # Trivy Status
-        trivy_status = self._create_status_row(
-            "Trivy Scanner",
-            "Active" if trivy_scanner and trivy_scanner.trivy_available else "Unavailable"
-        )
-        status_box.append(trivy_status)
+        # Rows start as placeholders; update_system_status() fills them in once
+        # the scanners exist (the views are built after the sidebar).
+        self.docker_status_row, self.docker_status_value, self.docker_status_dot = \
+            self._create_status_row("Docker Engine", "Checking...")
+        status_box.append(self.docker_status_row)
+
+        self.trivy_status_row, self.trivy_status_value, self.trivy_status_dot = \
+            self._create_status_row("Trivy Scanner", "Checking...")
+        status_box.append(self.trivy_status_row)
         
         self.sidebar.append(status_box)
         
@@ -232,14 +227,13 @@ class MainWindow(Gtk.ApplicationWindow):
         
         status_dot = Gtk.Box()
         status_dot.add_css_class("status-dot")
-        status_dot.add_css_class("status-active")
         row.append(status_dot)
-        
+
         status_widget = Gtk.Label(label=status)
         status_widget.add_css_class("sidebar-status-value")
         row.append(status_widget)
-        
-        return row
+
+        return row, status_widget, status_dot
 
     def _init_views(self):
         self.dashboard_view = DashboardView(self)
@@ -251,7 +245,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.results_view = ResultsView()
         self.stack.add_named(self.results_view, "results")
         
-        # Why: main_window ref required for reload_config() call after Apply
+        # Settings needs the window back-reference so Apply can trigger reload_config().
         self.settings_view = SettingsView(main_window=self)
         self.stack.add_named(self.settings_view, "settings")
 
@@ -289,11 +283,29 @@ class MainWindow(Gtk.ApplicationWindow):
             self._update_stat_value(self.last_scan_label, "Never")
     
     def _update_stat_value(self, stat_row, new_value):
-        """Update the value label in a stat row"""
-        # Why: direct refs are O(1) and layout-change-safe; child traversal breaks on any widget reorder
+        """Update the value label in a stat row."""
         if stat_row is self.total_scans_label:
             self.stat_scans_label.set_label(new_value)
         elif stat_row is self.threats_found_label:
             self.stat_threats_label.set_label(new_value)
         elif stat_row is self.last_scan_label:
             self.stat_last_scan_label.set_label(new_value)
+
+    def update_system_status(self):
+        """Refresh the System Status rows from the live scanner state."""
+        scanner = getattr(getattr(self, "scan_view", None), "scanner", None)
+        trivy_scanner = getattr(scanner, "trivy_scanner", None)
+
+        docker_active = bool(trivy_scanner and trivy_scanner.docker_client is not None)
+        trivy_active = bool(trivy_scanner and trivy_scanner.trivy_available)
+
+        self._set_status_row(self.docker_status_value, self.docker_status_dot, docker_active)
+        self._set_status_row(self.trivy_status_value, self.trivy_status_dot, trivy_active)
+
+    def _set_status_row(self, value_widget, dot_widget, active):
+        """Set a status row's label and dot colour from a boolean state."""
+        value_widget.set_label("Active" if active else "Unavailable")
+        if active:
+            dot_widget.remove_css_class("status-inactive")
+        else:
+            dot_widget.add_css_class("status-inactive")

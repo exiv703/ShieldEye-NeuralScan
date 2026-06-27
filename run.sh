@@ -108,7 +108,7 @@ check_dependencies() {
 
     if ! python3 -c "import gi; gi.require_version('Gtk', '4.0'); from gi.repository import Gtk" 2>/dev/null; then
         print_error "PyGObject for GTK4 not found"
-        print_info "Install with: sudo apt install python3-gi (Ubuntu/Debian) lub odpowiednik dla Twojej dystrybucji"
+        print_info "Install with: sudo pacman -S python-gobject gtk4 (Arch) | sudo apt install python3-gi gir1.2-gtk-4.0 (Ubuntu/Debian)"
         exit 1
     fi
 
@@ -128,18 +128,45 @@ setup_environment() {
     print_success "Environment configured"
 }
 
+create_venv() {
+    # Why: --system-site-packages lets the venv see system PyGObject/gi. Without it,
+    # `import gi` fails at runtime even though the system check passed.
+    print_info "Creating virtual environment (.venv with --system-site-packages)..."
+    python3 -m venv --system-site-packages "${PROJECT_ROOT}/.venv"
+}
+
+# Set to 1 by ensure_venv_can_import_gi when it wipes and recreates .venv, so
+# callers know the venv is empty and Python deps must be reinstalled.
+VENV_WAS_REBUILT=0
+
+ensure_venv_can_import_gi() {
+    # Activate then verify gi is reachable from the venv's interpreter.
+    # If a previous .venv was created without --system-site-packages, recreate it.
+    # shellcheck source=/dev/null
+    source "${PROJECT_ROOT}/.venv/bin/activate"
+    if ! python3 -c "import gi" 2>/dev/null; then
+        print_warning ".venv cannot import 'gi' — rebuilding with --system-site-packages..."
+        deactivate
+        rm -rf "${PROJECT_ROOT}/.venv"
+        create_venv
+        # shellcheck source=/dev/null
+        source "${PROJECT_ROOT}/.venv/bin/activate"
+        # Why: rm wiped every pip-installed package — callers must reinstall or
+        # the app launches against an empty venv and silently loses AI/Trivy.
+        VENV_WAS_REBUILT=1
+    fi
+}
+
 install_python_deps() {
     print_info "Installing Python dependencies (virtualenv)..."
 
     cd "${PROJECT_ROOT}"
 
     if [ ! -d ".venv" ]; then
-        print_info "Creating virtual environment (.venv)..."
-        python3 -m venv .venv
+        create_venv
     fi
 
-    # shellcheck source=/dev/null
-    source .venv/bin/activate
+    ensure_venv_can_import_gi
 
     pip install --upgrade pip setuptools wheel
 
@@ -175,8 +202,11 @@ run_gui() {
         install_requirements
     fi
 
-    # shellcheck source=/dev/null
-    source .venv/bin/activate
+    ensure_venv_can_import_gi
+    if [ "${VENV_WAS_REBUILT}" = "1" ]; then
+        print_warning "venv was rebuilt empty — reinstalling dependencies first..."
+        install_requirements
+    fi
 
     setup_environment
 
@@ -211,8 +241,11 @@ run_tests() {
         install_requirements
     fi
 
-    # shellcheck source=/dev/null
-    source .venv/bin/activate
+    ensure_venv_can_import_gi
+    if [ "${VENV_WAS_REBUILT}" = "1" ]; then
+        print_warning "venv was rebuilt empty — reinstalling dependencies first..."
+        install_requirements
+    fi
     if command -v pytest &> /dev/null; then
         # Why: test failures were previously masked — test runner must signal real status
         pytest tests/ -v

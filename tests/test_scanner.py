@@ -1,4 +1,4 @@
-# Why: these tests verify scanner contracts, not implementation details — inputs and outputs only
+"""Scanner contract tests: assert on inputs and outputs, not implementation details."""
 
 from pathlib import Path
 

@@ -1,4 +1,4 @@
-# Why: AI model lifecycle is independent of scan orchestration
+"""AI code analyzer. Owns the model lifecycle, separate from scan orchestration."""
 import logging
 from typing import Dict, Any, Optional
 
@@ -64,8 +64,6 @@ class AICodeAnalyzer:
             self.model = None
             self.tokenizer = None
 
-    # Why: unused API removed — scan_file_for_malware() is the single entry point
-
     def explain_snippet(self, snippet: str, surrounding: Optional[str], custom_prompt: Optional[str] = None) -> str:
         if not self.model or not self.tokenizer:
             return "AI Analyzer is not available."
@@ -73,7 +71,7 @@ class AICodeAnalyzer:
         base = (
             "You are a security expert. Explain succinctly why the following code may be dangerous,"
             " referencing concrete risks (CWE/OWASP where relevant) and potential impact."
-            " Provide remediation advice in 1–2 sentences."
+            " Provide remediation advice in 1-2 sentences."
         )
         if custom_prompt:
             base += f"\nAdditional instruction: {custom_prompt}"

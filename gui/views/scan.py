@@ -1,8 +1,9 @@
 import gi
 import threading
-import os
+import re
 import time
 import logging
+from pathlib import Path
 from gi.repository import Gtk, GLib, Pango
 from backend import SecurityScanner
 from utils.file_handler import save_scan_history, load_scan_history
@@ -205,7 +206,7 @@ class ScanView(Gtk.Box):
             stored_file_path = entry.get('file_path', '')
             
             file_path = entry.get('file_path', '') or stored_file_name or ''
-            display_name = stored_file_name or os.path.basename(stored_file_path) or 'Unknown file'
+            display_name = stored_file_name or Path(stored_file_path).name or 'Unknown file'
 
             threats = entry.get('threats', 0)
             date = entry.get('date', '')
@@ -261,16 +262,16 @@ class ScanView(Gtk.Box):
             logging.debug("Error selecting file: %s", e)
 
     def _start_scan(self, path):
-        if not os.path.exists(path):
+        if not Path(path).exists():
             self._show_error(f"File not found: {path}")
             return
-        
+
         try:
-            normalized_path = os.path.realpath(path)
-            if not os.path.isfile(normalized_path):
+            resolved = Path(path).resolve()
+            if not resolved.is_file():
                 self._show_error(f"Path is not a file: {path}")
                 return
-            path = normalized_path
+            path = str(resolved)
         except (OSError, ValueError) as e:
             self._show_error(f"Invalid file path: {e}")
             return
@@ -281,7 +282,7 @@ class ScanView(Gtk.Box):
         self.drop_zone.set_visible(False)
         self.progress_card.set_visible(True)
         self.progress_icon.start()
-        self.progress_title.set_label(f"Scanning {os.path.basename(path)}")
+        self.progress_title.set_label(f"Scanning {Path(path).name}")
         self.progress_bar.set_fraction(0.0)
         self.progress_bar.set_text("Starting...")
         self.progress_status.set_label("Initializing scanner...")
@@ -303,33 +304,44 @@ class ScanView(Gtk.Box):
     def _update_progress_ui(self):
         if not self.progress_card.get_visible():
             return False
-        
+
         if self.scan_start_time:
             elapsed = int(time.time() - self.scan_start_time)
             self.elapsed_value.set_label(f"{elapsed}s")
-        
+
         progress_msg = getattr(self.scanner, 'progress_message', '')
         if progress_msg:
             self.progress_status.set_label(progress_msg)
-            
-            # Why: progress message must match what scanner actually emits — fake progress is misleading
-            if "static analysis" in progress_msg.lower():
-                self.progress_bar.set_fraction(0.2)
-                self.progress_bar.set_text("20% - Static Analysis")
-            elif "ai" in progress_msg.lower() or "analyzing" in progress_msg.lower():
-                self.progress_bar.set_fraction(0.6)
-                self.progress_bar.set_text("60% - AI Analysis")
-            elif "aggregating" in progress_msg.lower():
-                self.progress_bar.set_fraction(0.9)
-                self.progress_bar.set_text("90% - Finalizing")
-        
+            self._reflect_progress(progress_msg)
+
         return True
+
+    def _reflect_progress(self, message):
+        """Move the progress bar based on the phase the scanner reports."""
+        lowered = message.lower()
+        if "static analysis" in lowered:
+            self.progress_bar.set_fraction(0.1)
+            self.progress_bar.set_text("Static analysis")
+            return
+        if "aggregating" in lowered:
+            self.progress_bar.set_fraction(0.95)
+            self.progress_bar.set_text("Finalizing")
+            return
+
+        # The AI phase reports "snippet 3/12", which is a real ratio we can show.
+        match = re.search(r"snippet\s+(\d+)\s*/\s*(\d+)", message)
+        if match:
+            done, total = int(match.group(1)), int(match.group(2))
+            if total > 0:
+                fraction = min(0.15 + 0.75 * (done / total), 0.9)
+                self.progress_bar.set_fraction(fraction)
+                self.progress_bar.set_text(f"Analyzing {done}/{total}")
     
     def _scan_worker(self, path, detail='standard'):
         try:
             report = self.scanner.scan_file_for_malware(path, detail=detail)
 
-            # Why: error result must never reach display_report() — clean result and failed scan are not the same thing
+            # A failed scan is not a clean result, so an error report must short-circuit here.
             if isinstance(report, dict) and "error" in report:
                 raw_error = str(report.get("error") or "").strip()
                 if not raw_error:
@@ -341,11 +353,9 @@ class ScanView(Gtk.Box):
             
             findings = report.get("findings", [])
             try:
-                # Why: save_history=False lets users run scans without polluting history — useful for ad-hoc checks
                 if self.scanner.settings.get('save_history', True):
                     save_scan_history(path, len(findings), report.get("security_score", 0))
-            except Exception as e:
-                # Why: history save failure should not crash the scan but must be visible in logs
+            except OSError as e:
                 logging.warning("Failed to save scan history for '%s': %s", path, e)
             
             GLib.idle_add(self.findings_value.set_label, str(len(findings)))

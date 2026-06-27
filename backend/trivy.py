@@ -1,7 +1,7 @@
-# Why: Docker/Trivy lifecycle is isolated here — scanner.py has no direct Docker dependency
+"""Docker/Trivy integration kept separate so scanner.py has no direct Docker dependency."""
 import json
 import logging
-import os
+from pathlib import Path
 from typing import Optional, Any
 
 
@@ -19,7 +19,6 @@ class TrivyScanner:
             self.trivy_available = False
             return "Trivy scan is unavailable because Docker is not running or not accessible."
 
-        # Why: trivy_available must reflect actual readiness, not optimistic assumption
         pull_ok = self._pull_trivy_image()
         self.trivy_available = bool(pull_ok)
         if not pull_ok:
@@ -91,13 +90,13 @@ class TrivyScanner:
                 '--format', 'json',
                 '--quiet',
                 '--no-progress',
-                f'/scan/{os.path.basename(file_path)}'
+                f'/scan/{Path(file_path).name}'
             ]
 
             container = self.docker_client.containers.run(
                 'aquasec/trivy:latest',
                 command,
-                volumes={os.path.dirname(os.path.abspath(file_path)): {'bind': '/scan', 'mode': 'ro'}},
+                volumes={str(Path(file_path).resolve().parent): {'bind': '/scan', 'mode': 'ro'}},
                 remove=True,
                 stderr=True,
                 stdout=True

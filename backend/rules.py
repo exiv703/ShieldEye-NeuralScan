@@ -1,4 +1,4 @@
-# Why: rules are pure data — keeping them separate makes adding/reviewing patterns easier
+"""Security detection rules as pure data, kept separate so patterns are easy to review."""
 import re
 
 

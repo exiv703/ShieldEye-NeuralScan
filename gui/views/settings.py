@@ -1,12 +1,12 @@
 import gi
 import json
-import os
+from pathlib import Path
 
 gi.require_version('Gtk', '4.0')
 
 from gi.repository import Gtk, GLib
 
-CONFIG_FILE = os.path.join('data', 'config.json')
+CONFIG_FILE = Path('data') / 'config.json'
 MODEL_OPTIONS = [
     "bigcode/starcoder2-3b",
     "bigcode/starcoder2-7b",
@@ -154,11 +154,11 @@ class SettingsView(Gtk.Box):
 
     def _load_config(self):
         try:
-            with open(CONFIG_FILE, 'r') as f:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
                     return loaded
-        except (FileNotFoundError, json.JSONDecodeError, OSError):
+        except (json.JSONDecodeError, OSError):
             pass
 
         return {}
@@ -176,12 +176,11 @@ class SettingsView(Gtk.Box):
             'scan_timeout': int(self.duration_scale.get_value())
         })
 
-        os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
-        # Why: settings are persisted to data/config.json — SecurityScanner reads this on next scan init
-        with open(CONFIG_FILE, 'w') as f:
+        CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.settings, f, indent=4)
 
-        # Why: reload_config() picks up new settings immediately — user does not need to restart the app
+        # Push the new settings into the running scanner so no restart is needed.
         if hasattr(self, 'main_window'):
             scanner = getattr(getattr(getattr(self, 'main_window', None), 'scan_view', None), 'scanner', None)
             if scanner:

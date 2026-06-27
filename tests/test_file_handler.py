@@ -1,4 +1,4 @@
-# Why: file_handler is the persistence layer — these tests catch schema regressions
+"""Persistence-layer tests for file_handler, guarding the history schema."""
 
 from pathlib import Path
 
@@ -10,9 +10,9 @@ def test_save_and_load_roundtrip(tmp_path):
     original_history_file = file_handler.HISTORY_FILE
     original_legacy_file = file_handler.LEGACY_FILE
 
-    file_handler.DATA_DIR = str(tmp_path / "data")
-    file_handler.HISTORY_FILE = str(Path(file_handler.DATA_DIR) / "scan_history.json")
-    file_handler.LEGACY_FILE = str(tmp_path / "scan_history.json")
+    file_handler.DATA_DIR = tmp_path / "data"
+    file_handler.HISTORY_FILE = file_handler.DATA_DIR / "scan_history.json"
+    file_handler.LEGACY_FILE = tmp_path / "scan_history.json"
 
     try:
         target_file = tmp_path / "target.py"
@@ -36,9 +36,9 @@ def test_schema_version_present(tmp_path):
     original_history_file = file_handler.HISTORY_FILE
     original_legacy_file = file_handler.LEGACY_FILE
 
-    file_handler.DATA_DIR = str(tmp_path / "data")
-    file_handler.HISTORY_FILE = str(Path(file_handler.DATA_DIR) / "scan_history.json")
-    file_handler.LEGACY_FILE = str(tmp_path / "scan_history.json")
+    file_handler.DATA_DIR = tmp_path / "data"
+    file_handler.HISTORY_FILE = file_handler.DATA_DIR / "scan_history.json"
+    file_handler.LEGACY_FILE = tmp_path / "scan_history.json"
 
     try:
         target_file = tmp_path / "target_schema.py"
@@ -60,9 +60,9 @@ def test_missing_file_returns_empty(tmp_path):
     original_history_file = file_handler.HISTORY_FILE
     original_legacy_file = file_handler.LEGACY_FILE
 
-    file_handler.DATA_DIR = str(tmp_path / "data")
-    file_handler.HISTORY_FILE = str(Path(file_handler.DATA_DIR) / "scan_history.json")
-    file_handler.LEGACY_FILE = str(tmp_path / "scan_history.json")
+    file_handler.DATA_DIR = tmp_path / "data"
+    file_handler.HISTORY_FILE = file_handler.DATA_DIR / "scan_history.json"
+    file_handler.LEGACY_FILE = tmp_path / "scan_history.json"
 
     try:
         history_path = Path(file_handler.HISTORY_FILE)

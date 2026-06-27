@@ -1,4 +1,4 @@
-# Why: scoring logic is testable in isolation without instantiating a full scanner
+"""Security score and risk-category aggregation, independent of the scanner."""
 from typing import Dict, Any, List
 
 

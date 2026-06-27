@@ -1,4 +1,5 @@
-import os
+import logging
+from pathlib import Path
 from gi.repository import Gtk, Pango
 from backend.exporters import export_report
 
@@ -40,7 +41,7 @@ class ResultsView(Gtk.Box):
         score_box.set_margin_bottom(12)
         self.score_card.set_child(score_box)
         
-        self.score_label = Gtk.Label(label="Score: —")
+        self.score_label = Gtk.Label(label="Score: N/A")
         self.score_label.add_css_class("title-2")
         score_box.append(self.score_label)
         
@@ -89,7 +90,7 @@ class ResultsView(Gtk.Box):
                 error_text = f"Scan failed: {error_text}"
 
             self.file_label.set_label("Scan Error")
-            self.score_label.set_label("Score: —")
+            self.score_label.set_label("Score: N/A")
             self.score_bar.set_fraction(0.0)
 
             error_lbl = Gtk.Label(label=error_text)
@@ -102,7 +103,7 @@ class ResultsView(Gtk.Box):
             return
             
         # File Info
-        fname = os.path.basename(file_path)
+        fname = Path(file_path).name
         self.file_label.set_label(f"File: {fname}")
         
         # Score
@@ -128,7 +129,7 @@ class ResultsView(Gtk.Box):
         if not self.current_report or not self.current_file_path:
             return
 
-        suggested_name = f"{os.path.basename(self.current_file_path)}.report.json"
+        suggested_name = f"{Path(self.current_file_path).name}.report.json"
         dialog = Gtk.FileDialog()
         dialog.set_title("Export Scan Report")
         dialog.set_initial_name(suggested_name)
@@ -143,10 +144,9 @@ class ResultsView(Gtk.Box):
             output_path = file.get_path()
             if not output_path:
                 return
-            # Why: exporters.py was dead code — this gives it a real entry point
             export_report(self.current_report, format='json', output_path=output_path)
-        except Exception:
-            pass
+        except (OSError, ValueError) as e:
+            logging.warning("Failed to export report: %s", e)
 
     def _create_finding_row(self, idx, finding):
         frame = Gtk.Frame()
@@ -190,7 +190,6 @@ class ResultsView(Gtk.Box):
         meta_lbl.set_halign(Gtk.Align.START)
         box.append(meta_lbl)
 
-        # Why: metadata from scanner is shown here — users need CWE/OWASP refs and remediation to act on findings
         cwe = str(finding.get("cwe", "")).strip()
         if cwe:
             cwe_lbl = Gtk.Label(label=f"CWE: {cwe}")
