@@ -70,18 +70,18 @@ What it currently does:
 
 Current module layout:
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │                    GTK4 Desktop Interface                    │
-│   ┌──────────┬──────────┬──────────┬──────────┐             │
-│   │Dashboard │   Scan   │ Results  │ Settings │             │
-│   └──────────┴──────────┴──────────┴──────────┘             │
+│   ┌──────────┬──────────┬──────────┬──────────┐              │
+│   │Dashboard │   Scan   │ Results  │ Settings │              │
+│   └──────────┴──────────┴──────────┴──────────┘              │
 └─────────────────────────────┬────────────────────────────────┘
                               │
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                     backend/scanner.py                       │
-│   Orchestrates scan flow, AI fallback, scoring, suppression │
+│  Orchestrates scan flow, AI fallback, scoring, suppression   │
 └───────────────┬──────────────────┬───────────────────────────┘
                 │                  │
                 ▼                  ▼
@@ -92,7 +92,7 @@ Current module layout:
                 ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                       Local Storage                          │
-│                 data/config.json, scan history              │
+│                 data/config.json, scan history               │
 └──────────────────────────────────────────────────────────────┘
 ```
 
