@@ -6,13 +6,15 @@
 
 *Heuristic detection • Optional local AI explanations • Optional Trivy filesystem scan*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-1F6FEB?style=for-the-badge&labelColor=22272E)](https://opensource.org/licenses/MIT)
+[![CI](https://img.shields.io/github/actions/workflow/status/exiv703/ShieldEye-NeuralScan/ci.yml?branch=main&label=CI&logo=github&logoColor=white&style=for-the-badge&labelColor=22272E)](https://github.com/exiv703/ShieldEye-NeuralScan/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/exiv703/ShieldEye-NeuralScan?display_name=tag&label=Release&color=1F6FEB&style=for-the-badge&labelColor=22272E)](https://github.com/exiv703/ShieldEye-NeuralScan/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-1F6FEB?style=for-the-badge&labelColor=22272E)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-1F6FEB?logo=python&logoColor=white&style=for-the-badge&labelColor=22272E)](https://www.python.org/)
 [![GTK](https://img.shields.io/badge/GTK-4.0-1F6FEB?logo=gtk&logoColor=white&style=for-the-badge&labelColor=22272E)](https://www.gtk.org/)
 [![Transformers](https://img.shields.io/badge/🤗-Transformers-1F6FEB?style=for-the-badge&labelColor=22272E)](https://huggingface.co/docs/transformers)
 [![Docker](https://img.shields.io/badge/Docker-Optional-1F6FEB?logo=docker&logoColor=white&style=for-the-badge&labelColor=22272E)](https://www.docker.com/)
 
-[Features](#features) • [Quick Start](#quick-start) • [Screenshots](#screenshots) • [Documentation](#documentation) • [Contributing](#contributing)
+[Features](#features) • [Screenshots](#screenshots) • [Architecture](#architecture) • [Quick Start](#quick-start) • [Configuration](#configuration) • [Development](#development)
 
 ---
 
@@ -217,6 +219,8 @@ Example:
 - Scoring logic: `backend/scoring.py`
 - Tests: `tests/` (8 pytest tests)
 
+---
+
 ## Development
 
 ### Local setup
@@ -236,7 +240,7 @@ python -m pytest tests/ -v
 
 ### Project Structure
 
-```
+```text
 ShieldEye-NeuralScan/
 ├── backend/
 │   ├── scanner.py          # Scan orchestration
@@ -283,17 +287,17 @@ is a few lines plus a test case under `tests/samples/`.
 
 ## License
 
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## Acknowledgments
 
-- [Hugging Face](https://huggingface.co/) – Transformers library and model hosting
-- [GTK Project](https://www.gtk.org/) – Cross-platform GUI toolkit
-- [Aqua Security](https://www.aquasec.com/) – Trivy container scanner
-- [BigCode](https://www.bigcode-project.org/) – StarCoder2 models
-- [Mistral AI](https://mistral.ai/) – Mixtral models
+- [Hugging Face](https://huggingface.co/) - Transformers library and model hosting
+- [GTK Project](https://www.gtk.org/) - Cross-platform GUI toolkit
+- [Aqua Security](https://www.aquasec.com/) - Trivy container scanner
+- [BigCode](https://www.bigcode-project.org/) - StarCoder2 models
+- [Mistral AI](https://mistral.ai/) - Mixtral models
 
 ---
 
@@ -301,6 +305,6 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 
 Part of the **ShieldEye** toolkit:
 
-- **[ShieldEye Core](https://github.com/exiv703/ShieldEye-Core)** - network security scanner (Nmap + GTK4)
+- **[ShieldEye Core](https://github.com/exiv703/Shield-Eye-Core)** - network security scanner (Nmap + GTK4)
 - **[ShieldEye SurfaceScan](https://github.com/exiv703/ShieldEye-SurfaceScan)** - web attack-surface mapper
 - **[ShieldEye ComplianceScan](https://github.com/exiv703/ShieldEye_ComplianceScan)** - GDPR / PCI-DSS / ISO 27001 compliance scanner
