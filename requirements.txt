@@ -26,7 +26,7 @@
 # Loose pins so pip can pick wheels that match the running Python version.
 # If install fails (e.g. no cp314 wheel for torch), scanner falls back to
 # heuristic-only analysis - GUI still runs.
-transformers>=4.46
+transformers>=5.20.2
 accelerate>=1.0
 safetensors>=0.5
 torch>=2.5
