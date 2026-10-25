@@ -27,7 +27,7 @@
 # If install fails (e.g. no cp314 wheel for torch), scanner falls back to
 # heuristic-only analysis - GUI still runs.
 transformers>=4.46
-accelerate>=1.0
+accelerate>=1.15.0
 safetensors>=0.5
 torch>=2.5
 
